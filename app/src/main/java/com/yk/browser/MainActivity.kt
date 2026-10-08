@@ -11,8 +11,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.CookieManager
+import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.PopupMenu
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -25,7 +28,6 @@ import com.yk.browser.data.HistoryEntry
 import com.yk.browser.data.Prefs
 import com.yk.browser.data.SavedLogin
 import com.yk.browser.data.SessionCookie
-import com.yk.browser.databinding.ActivityMainBinding
 import com.yk.browser.sync.SyncScheduler
 import com.yk.browser.ui.LoginsActivity
 import com.yk.browser.ui.SettingsActivity
@@ -39,16 +41,25 @@ import java.net.URLEncoder
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var webview: WebView
+    private lateinit var addressBar: EditText
+    private lateinit var progress: ProgressBar
     private val db by lazy { AppDatabase.get(this) }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
 
-        val web = binding.webview
+        webview = findViewById(R.id.webview)
+        addressBar = findViewById(R.id.addressBar)
+        progress = findViewById(R.id.progress)
+        val goButton: Button = findViewById(R.id.goButton)
+        val backButton: ImageButton = findViewById(R.id.backButton)
+        val forwardButton: ImageButton = findViewById(R.id.forwardButton)
+        val menuButton: ImageButton = findViewById(R.id.menuButton)
+
+        val web = webview
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.mediaPlaybackRequiresUserGesture = false
@@ -70,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageFinished(view: WebView, url: String) {
-                binding.addressBar.setText(url)
+                addressBar.setText(url)
                 view.evaluateJavascript(LOGIN_CAPTURE_JS, null)
                 lifecycleScope.launch { recordVisit(view.title ?: url, url) }
             }
@@ -78,16 +89,16 @@ class MainActivity : AppCompatActivity() {
 
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                binding.progress.progress = newProgress
-                binding.progress.visibility = if (newProgress == 100) View.GONE else View.VISIBLE
+                progress.progress = newProgress
+                progress.visibility = if (newProgress == 100) View.GONE else View.VISIBLE
             }
         }
 
-        binding.goButton.setOnClickListener { loadFromBar() }
-        binding.addressBar.setOnEditorActionListener { _, _, _ -> loadFromBar(); true }
-        binding.backButton.setOnClickListener { if (web.canGoBack()) web.goBack() }
-        binding.forwardButton.setOnClickListener { if (web.canGoForward()) web.goForward() }
-        binding.menuButton.setOnClickListener { showMenu() }
+        goButton.setOnClickListener { loadFromBar() }
+        addressBar.setOnEditorActionListener { _, _, _ -> loadFromBar(); true }
+        backButton.setOnClickListener { if (web.canGoBack()) web.goBack() }
+        forwardButton.setOnClickListener { if (web.canGoForward()) web.goForward() }
+        menuButton.setOnClickListener { showMenu(menuButton) }
 
         if (savedInstanceState == null) web.loadUrl("https://www.google.com")
 
@@ -96,21 +107,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (binding.webview.canGoBack()) binding.webview.goBack() else super.onBackPressed()
+        if (webview.canGoBack()) webview.goBack() else super.onBackPressed()
     }
 
     private fun loadFromBar() {
-        var input = binding.addressBar.text.toString().trim()
+        var input = addressBar.text.toString().trim()
         if (input.isEmpty()) return
         if (!input.contains("://")) {
             input = if (input.contains(".") && !input.contains(" ")) "https://$input"
             else "https://www.google.com/search?q=" + URLEncoder.encode(input, "UTF-8")
         }
-        binding.webview.loadUrl(input)
+        webview.loadUrl(input)
     }
 
-    private fun showMenu() {
-        PopupMenu(this, binding.menuButton).apply {
+    private fun showMenu(anchor: View) {
+        PopupMenu(this, anchor).apply {
             menu.add("Saved logins")
             menu.add("Backup now")
             menu.add("Settings")

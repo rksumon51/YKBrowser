@@ -4,27 +4,26 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.yk.browser.R
 import com.yk.browser.data.AppDatabase
-import com.yk.browser.databinding.ActivityLoginsBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginsActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityLoginsBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_logins)
 
+        val recycler: RecyclerView = findViewById(R.id.recycler)
         val db = AppDatabase.get(this)
         val adapter = LoginAdapter(this, lifecycleScope) { login ->
             db.loginDao().delete(login)
         }
-        binding.recycler.layoutManager = LinearLayoutManager(this)
-        binding.recycler.adapter = adapter
+        recycler.layoutManager = LinearLayoutManager(this)
+        recycler.adapter = adapter
 
         lifecycleScope.launch {
             val logins = withContext(Dispatchers.IO) { db.loginDao().getAll() }

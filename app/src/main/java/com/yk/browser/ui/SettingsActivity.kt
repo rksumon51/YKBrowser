@@ -3,19 +3,22 @@ package com.yk.browser.ui
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputType
+import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
+import com.google.android.material.switchmaterial.SwitchMaterial
+import com.yk.browser.R
 import com.yk.browser.auth.AuthManager
 import com.yk.browser.backup.BackupManager
 import com.yk.browser.backup.BackupPinHolder
 import com.yk.browser.backup.BackupResult
 import com.yk.browser.data.Prefs
-import com.yk.browser.databinding.ActivitySettingsBinding
 import com.yk.browser.sync.SyncScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,8 +29,14 @@ import java.util.Locale
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivitySettingsBinding
     private val backupManager by lazy { BackupManager(this) }
+
+    private lateinit var tvAccount: TextView
+    private lateinit var btnSignIn: Button
+    private lateinit var btnSignOut: Button
+    private lateinit var btnSetPin: Button
+    private lateinit var switchCloud: SwitchMaterial
+    private lateinit var switchLocal: SwitchMaterial
 
     private val googleSignInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -40,7 +49,7 @@ class SettingsActivity : AppCompatActivity() {
                     toast("Google sign-in unavailable (Firebase not configured)")
                     return@registerForActivityResult
                 }
-                AuthManager.signInWithGoogle(this, idToken).addOnCompleteListener { task ->
+                AuthManager.signInWithGoogle(idToken).addOnCompleteListener { task ->
                     toast(if (task.isSuccessful) "Signed in" else "Sign-in failed: ${task.exception?.message}")
                     refreshAccount()
                 }
@@ -79,11 +88,22 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_settings)
         SyncScheduler.schedule(this)
 
-        binding.btnSignIn.setOnClickListener {
+        tvAccount = findViewById(R.id.tvAccount)
+        btnSignIn = findViewById(R.id.btnSignIn)
+        btnSignOut = findViewById(R.id.btnSignOut)
+        btnSetPin = findViewById(R.id.btnSetPin)
+        switchCloud = findViewById(R.id.switchCloud)
+        switchLocal = findViewById(R.id.switchLocal)
+        val btnBackupNow: Button = findViewById(R.id.btnBackupNow)
+        val btnRestoreCloud: Button = findViewById(R.id.btnRestoreCloud)
+        val btnRestoreLocal: Button = findViewById(R.id.btnRestoreLocal)
+        val btnExport: Button = findViewById(R.id.btnExport)
+        val btnImport: Button = findViewById(R.id.btnImport)
+
+        btnSignIn.setOnClickListener {
             if (!AuthManager.isFirebaseConfigured(this)) {
                 toast("Firebase not configured yet — add google-services.json (see FIREBASE_SETUP.md) and rebuild")
                 return@setOnClickListener
@@ -91,20 +111,20 @@ class SettingsActivity : AppCompatActivity() {
             val client = GoogleSignIn.getClient(this, AuthManager.googleSignInOptions(this))
             googleSignInLauncher.launch(client.signInIntent)
         }
-        binding.btnSignOut.setOnClickListener {
+        btnSignOut.setOnClickListener {
             AuthManager.signOut(this)
             BackupPinHolder.pin = null
             refreshAccount()
             toast("Signed out")
         }
-        binding.btnSetPin.setOnClickListener { askNewPin() }
+        btnSetPin.setOnClickListener { askNewPin() }
 
-        binding.switchCloud.isChecked = Prefs.isCloudEnabled(this)
-        binding.switchCloud.setOnCheckedChangeListener { _, v -> Prefs.setCloudEnabled(this, v) }
-        binding.switchLocal.isChecked = Prefs.isLocalAuto(this)
-        binding.switchLocal.setOnCheckedChangeListener { _, v -> Prefs.setLocalAuto(this, v) }
+        switchCloud.isChecked = Prefs.isCloudEnabled(this)
+        switchCloud.setOnCheckedChangeListener { _, v -> Prefs.setCloudEnabled(this, v) }
+        switchLocal.isChecked = Prefs.isLocalAuto(this)
+        switchLocal.setOnCheckedChangeListener { _, v -> Prefs.setLocalAuto(this, v) }
 
-        binding.btnBackupNow.setOnClickListener {
+        btnBackupNow.setOnClickListener {
             requirePin { pin ->
                 lifecycleScope.launch {
                     toast("Backing up…")
@@ -115,7 +135,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.btnRestoreCloud.setOnClickListener {
+        btnRestoreCloud.setOnClickListener {
             if (!AuthManager.isFirebaseConfigured(this)) {
                 toast("Firebase not configured yet — add google-services.json (see FIREBASE_SETUP.md) and rebuild")
                 return@setOnClickListener
@@ -128,7 +148,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.btnRestoreLocal.setOnClickListener {
+        btnRestoreLocal.setOnClickListener {
             requirePin { pin ->
                 lifecycleScope.launch {
                     toast("Restoring from local…")
@@ -137,22 +157,22 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.btnExport.setOnClickListener {
+        btnExport.setOnClickListener {
             val name = "ykbrowser-backup-" +
                 SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date()) + ".ykb"
             exportLauncher.launch(name)
         }
-        binding.btnImport.setOnClickListener { importLauncher.launch(arrayOf("*/*")) }
+        btnImport.setOnClickListener { importLauncher.launch(arrayOf("*/*")) }
 
         refreshAccount()
     }
 
     private fun refreshAccount() {
         val email = AuthManager.currentEmail()
-        binding.tvAccount.text = if (email != null) "Signed in as $email" else "Not signed in"
-        binding.btnSignIn.isEnabled = email == null
-        binding.btnSignOut.isEnabled = email != null
-        binding.btnSetPin.text = if (Prefs.isPinSet(this)) "Change backup PIN" else "Set backup PIN"
+        tvAccount.text = if (email != null) "Signed in as $email" else "Not signed in"
+        btnSignIn.isEnabled = email == null
+        btnSignOut.isEnabled = email != null
+        btnSetPin.text = if (Prefs.isPinSet(this)) "Change backup PIN" else "Set backup PIN"
     }
 
     /** Ensures a PIN is available (in RAM), asking the user when needed. */
