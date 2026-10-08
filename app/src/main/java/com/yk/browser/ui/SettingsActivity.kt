@@ -37,7 +37,7 @@ class SettingsActivity : AppCompatActivity() {
                     .getResult(ApiException::class.java)
                 val idToken = account?.idToken
                 if (idToken == null) {
-                    toast("Google sign-in failed: no id token")
+                    toast("Google sign-in unavailable (Firebase not configured)")
                     return@registerForActivityResult
                 }
                 AuthManager.signInWithGoogle(this, idToken).addOnCompleteListener { task ->
@@ -84,6 +84,10 @@ class SettingsActivity : AppCompatActivity() {
         SyncScheduler.schedule(this)
 
         binding.btnSignIn.setOnClickListener {
+            if (!AuthManager.isFirebaseConfigured(this)) {
+                toast("Firebase not configured yet — add google-services.json (see FIREBASE_SETUP.md) and rebuild")
+                return@setOnClickListener
+            }
             val client = GoogleSignIn.getClient(this, AuthManager.googleSignInOptions(this))
             googleSignInLauncher.launch(client.signInIntent)
         }
@@ -112,6 +116,10 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
         binding.btnRestoreCloud.setOnClickListener {
+            if (!AuthManager.isFirebaseConfigured(this)) {
+                toast("Firebase not configured yet — add google-services.json (see FIREBASE_SETUP.md) and rebuild")
+                return@setOnClickListener
+            }
             requirePin { pin ->
                 lifecycleScope.launch {
                     toast("Restoring from cloud…")

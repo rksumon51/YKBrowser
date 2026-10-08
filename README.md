@@ -45,6 +45,18 @@ New backup destinations only need a `BackupProvider` implementation — the UI a
 2. Download `google-services.json` into `app/`.
 3. Open in Android Studio (JDK 17) and run.
 
+> Without `google-services.json` the app still builds and runs (browser + local
+> backup work); only the Google account / cloud vault features stay disabled
+> until the file is added.
+
+## CI — download the APK without Android Studio
+
+Every push to `main` builds a debug APK via GitHub Actions
+(`.github/workflows/build-apk.yml`):
+
+**Actions tab → Build APK → latest run → Artifacts → `ykbrowser-debug`** — download,
+install on your phone, done.
+
 ## Project notes
 
 - `minSdk 24`, `targetSdk 34`, Kotlin 1.9.22, AGP 8.2.0

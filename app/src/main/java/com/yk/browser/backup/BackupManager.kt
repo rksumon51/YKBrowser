@@ -26,7 +26,8 @@ class BackupManager(private val context: Context) {
             if (Prefs.isLocalAuto(context)) {
                 results += local.name to local.backup(payloadJson, pin)
             }
-            if (Prefs.isCloudEnabled(context) && AuthManager.isSignedIn()) {
+            // Cloud only when Firebase is configured (google-services.json present) and signed in.
+            if (Prefs.isCloudEnabled(context) && AuthManager.isFirebaseConfigured(context) && AuthManager.isSignedIn()) {
                 results += cloud.name to cloud.backup(payloadJson, pin)
             }
             results

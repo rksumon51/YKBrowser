@@ -2,7 +2,13 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
-    id 'com.google.gms.google-services'
+}
+
+// google-services is applied only when app/google-services.json exists
+// (see FIREBASE_SETUP.md). CI builds without Firebase still succeed;
+// cloud features activate automatically once the file is added.
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
 }
 
 android {
