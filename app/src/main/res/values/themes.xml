@@ -40,12 +40,15 @@
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
-    <!-- Rounded Material 3 dialogs (PIN dialogs). -->
+    <!-- Rounded Material 3 dialogs (PIN dialogs).
+         NOTE: ShapeAppearance.Material3.ExtraLargeComponent does NOT exist in
+         Material 1.11.0 (it broke the CI build) — LargeComponent is the largest
+         component shape in this version; the 28dp corner is set explicitly below. -->
     <style name="ThemeOverlay.YKBrowser.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="shapeAppearance">@style/ShapeAppearance.YKBrowser.Dialog</item>
     </style>
 
-    <style name="ShapeAppearance.YKBrowser.Dialog" parent="ShapeAppearance.Material3.ExtraLargeComponent">
+    <style name="ShapeAppearance.YKBrowser.Dialog" parent="ShapeAppearance.Material3.LargeComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">28dp</item>
     </style>
