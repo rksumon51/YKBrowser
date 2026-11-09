@@ -17,6 +17,9 @@ class LoginsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_logins)
 
+        findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+            .setNavigationOnClickListener { finish() }
+
         val recycler: RecyclerView = findViewById(R.id.recycler)
         val db = AppDatabase.get(this)
         val adapter = LoginAdapter(this, lifecycleScope) { login ->

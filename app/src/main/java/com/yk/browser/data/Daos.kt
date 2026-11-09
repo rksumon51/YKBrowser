@@ -11,8 +11,14 @@ interface LoginDao {
     @Query("SELECT * FROM saved_logins ORDER BY updatedAt DESC")
     suspend fun getAll(): List<SavedLogin>
 
-    @Query("SELECT * FROM saved_logins WHERE host = :host LIMIT 1")
+    @Query("SELECT * FROM saved_logins WHERE host = :host ORDER BY updatedAt DESC LIMIT 1")
     suspend fun findByHost(host: String): SavedLogin?
+
+    @Query("SELECT * FROM saved_logins WHERE host = :host AND username = :username LIMIT 1")
+    suspend fun findByHostAndUsername(host: String, username: String): SavedLogin?
+
+    @Query("DELETE FROM saved_logins WHERE host = :host AND username = :username")
+    suspend fun deleteByHostAndUsername(host: String, username: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(login: SavedLogin)
@@ -46,6 +52,12 @@ interface HistoryDao {
 
     @Query("SELECT DISTINCT url FROM history ORDER BY visitedAt DESC LIMIT 200")
     suspend fun getRecentUrls(): List<String>
+
+    @Query("SELECT url FROM history WHERE url LIKE 'http%' GROUP BY url ORDER BY COUNT(*) DESC LIMIT 8")
+    suspend fun getTopUrls(): List<String>
+
+    @Query("SELECT title FROM history WHERE url = :url ORDER BY visitedAt DESC LIMIT 1")
+    suspend fun getTitleFor(url: String): String?
 
     @Insert
     suspend fun insert(entry: HistoryEntry)

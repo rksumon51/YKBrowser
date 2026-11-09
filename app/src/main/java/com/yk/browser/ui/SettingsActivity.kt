@@ -3,7 +3,6 @@ package com.yk.browser.ui
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputType
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -32,9 +31,9 @@ class SettingsActivity : AppCompatActivity() {
     private val backupManager by lazy { BackupManager(this) }
 
     private lateinit var tvAccount: TextView
-    private lateinit var btnSignIn: Button
-    private lateinit var btnSignOut: Button
-    private lateinit var btnSetPin: Button
+    private lateinit var btnSignIn: com.google.android.material.button.MaterialButton
+    private lateinit var btnSignOut: com.google.android.material.button.MaterialButton
+    private lateinit var btnSetPin: com.google.android.material.button.MaterialButton
     private lateinit var switchCloud: SwitchMaterial
     private lateinit var switchLocal: SwitchMaterial
 
@@ -91,17 +90,20 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
         SyncScheduler.schedule(this)
 
+        findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+            .setNavigationOnClickListener { finish() }
+
         tvAccount = findViewById(R.id.tvAccount)
         btnSignIn = findViewById(R.id.btnSignIn)
         btnSignOut = findViewById(R.id.btnSignOut)
         btnSetPin = findViewById(R.id.btnSetPin)
         switchCloud = findViewById(R.id.switchCloud)
         switchLocal = findViewById(R.id.switchLocal)
-        val btnBackupNow: Button = findViewById(R.id.btnBackupNow)
-        val btnRestoreCloud: Button = findViewById(R.id.btnRestoreCloud)
-        val btnRestoreLocal: Button = findViewById(R.id.btnRestoreLocal)
-        val btnExport: Button = findViewById(R.id.btnExport)
-        val btnImport: Button = findViewById(R.id.btnImport)
+        val btnBackupNow: com.google.android.material.button.MaterialButton = findViewById(R.id.btnBackupNow)
+        val btnRestoreCloud: com.google.android.material.button.MaterialButton = findViewById(R.id.btnRestoreCloud)
+        val btnRestoreLocal: com.google.android.material.button.MaterialButton = findViewById(R.id.btnRestoreLocal)
+        val btnExport: com.google.android.material.button.MaterialButton = findViewById(R.id.btnExport)
+        val btnImport: com.google.android.material.button.MaterialButton = findViewById(R.id.btnImport)
 
         btnSignIn.setOnClickListener {
             if (!AuthManager.isFirebaseConfigured(this)) {

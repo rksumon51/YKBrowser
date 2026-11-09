@@ -1,5 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.YKBrowser" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/yk_primary</item>
+        <item name="colorPrimaryDark">@color/yk_primary_dark</item>
+        <item name="colorOnPrimary">@color/yk_on_primary</item>
+        <item name="colorPrimaryContainer">@color/yk_primary_container</item>
+        <item name="colorSecondary">@color/yk_secondary</item>
+        <item name="colorSurface">@color/yk_surface</item>
+        <item name="colorSurfaceVariant">@color/yk_surface_variant</item>
+        <item name="colorOnSurface">@color/yk_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/yk_on_surface_variant</item>
+        <item name="colorOutline">@color/yk_outline</item>
+        <item name="colorError">@color/yk_error</item>
+        <item name="android:statusBarColor">@color/yk_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.YKBrowser.VIP" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/vip_accent</item>
+        <item name="colorOnPrimary">@color/vip_text</item>
+        <item name="colorSurface">@color/vip_bg</item>
+        <item name="colorOnSurface">@color/vip_text</item>
+        <item name="colorOnSurfaceVariant">@color/vip_text2</item>
+        <item name="android:statusBarColor">@color/vip_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/vip_bg</item>
+    </style>
+
+    <style name="Theme.YKBrowser.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_bg</item>
+        <item name="android:statusBarColor">@color/vip_bg</item>
+    </style>
+
+    <style name="Theme.YKBrowser.Chrome" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/chrome_blue</item>
+        <item name="colorOnPrimary">@color/chrome_text_dark</item>
+        <item name="colorSurface">@color/chrome_toolbar_light</item>
+        <item name="colorOnSurface">@color/chrome_text_light</item>
+        <item name="colorOnSurfaceVariant">@color/chrome_hint</item>
+        <item name="android:statusBarColor">@color/chrome_toolbar_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/chrome_toolbar_light</item>
+    </style>
+
+    <style name="Theme.YKBrowser.Chrome.Dark" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/chrome_blue_dark</item>
+        <item name="colorOnPrimary">@color/chrome_toolbar_dark</item>
+        <item name="colorSurface">@color/chrome_toolbar_dark</item>
+        <item name="colorOnSurface">@color/chrome_text_dark</item>
+        <item name="colorOnSurfaceVariant">@color/chrome_hint</item>
+        <item name="android:statusBarColor">@color/chrome_toolbar_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/chrome_toolbar_dark</item>
     </style>
 </resources>

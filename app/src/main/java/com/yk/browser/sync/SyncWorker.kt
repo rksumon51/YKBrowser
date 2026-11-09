@@ -1,6 +1,7 @@
 package com.yk.browser.sync
 
 import android.content.Context
+import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -33,6 +34,13 @@ object SyncScheduler {
     private const val WORK_NAME = "yk_vault_sync"
 
     fun schedule(context: Context) {
+        // Defensive: if the startup provider didn't run (e.g. broken manifest
+        // merge), initialize manually instead of crashing on launch.
+        try {
+            WorkManager.getInstance(context)
+        } catch (e: IllegalStateException) {
+            WorkManager.initialize(context, Configuration.Builder().build())
+        }
         val request = PeriodicWorkRequestBuilder<SyncWorker>(6, TimeUnit.HOURS)
             .setConstraints(
                 Constraints.Builder()

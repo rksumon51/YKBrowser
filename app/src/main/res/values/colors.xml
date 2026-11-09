@@ -1,4 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1A73E8</color>
+    <!-- VIP Dark Premium Palette -->
+    <color name="vip_bg">#0A0E1A</color>
+    <color name="vip_bg2">#111827</color>
+    <color name="vip_surface">#1A2332</color>
+    <color name="vip_surface2">#232F42</color>
+    <color name="vip_accent">#6B4EFF</color>
+    <color name="vip_accent2">#00D4FF</color>
+    <color name="vip_gold">#FFD700</color>
+    <color name="vip_text">#FFFFFF</color>
+    <color name="vip_text2">#9CA3AF</color>
+    <color name="vip_text3">#6B7280</color>
+
+    <!-- Light theme (keep for settings) -->
+    <color name="yk_primary">#0B57D0</color>
+    <color name="yk_primary_dark">#0842A0</color>
+    <color name="yk_primary_container">#D3E3FD</color>
+    <color name="yk_on_primary">#FFFFFF</color>
+    <color name="yk_secondary">#4A5B71</color>
+    <color name="yk_surface">#FDFBFF</color>
+    <color name="yk_surface_variant">#E1E3E1</color>
+    <color name="yk_surface_container">#F0F4F9</color>
+    <color name="yk_surface_container_high">#E9EEF6</color>
+    <color name="yk_outline">#C4C6D0</color>
+    <color name="yk_outline_variant">#E1E3E1</color>
+    <color name="yk_on_surface">#1A1C1E</color>
+    <color name="yk_on_surface_variant">#44474E</color>
+    <color name="yk_error">#BA1A1A</color>
+    <color name="yk_success">#146C2E</color>
+
+    <color name="ic_launcher_background">#0B57D0</color>
+    <!-- Chrome-style palette -->
+    <color name="chrome_toolbar_light">#FFFFFF</color>
+    <color name="chrome_omnibox_light">#F1F3F4</color>
+    <color name="chrome_toolbar_dark">#202124</color>
+    <color name="chrome_omnibox_dark">#303134</color>
+    <color name="chrome_text_light">#202124</color>
+    <color name="chrome_text_dark">#E8EAED</color>
+    <color name="chrome_hint">#5F6368</color>
+    <color name="chrome_blue">#0B57D0</color>
+    <color name="chrome_blue_dark">#8AB4F8</color>
 </resources>

@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#1F1F1F">
 
+    <!-- Chrome toolbar: back, forward, home, omnibox, avatar, tab badge, menu -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:gravity="center_vertical"
+        android:background="#1F1F1F"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:elevation="4dp">
 
         <ImageButton
             android:id="@+id/backButton"
@@ -16,7 +25,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
-            android:src="@android:drawable/ic_media_previous" />
+            android:src="@drawable/ic_back"
+            android:tint="#9AA0A6" />
 
         <ImageButton
             android:id="@+id/forwardButton"
@@ -24,26 +34,79 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Forward"
-            android:src="@android:drawable/ic_media_next" />
+            android:src="@drawable/ic_forward"
+            android:tint="#9AA0A6" />
 
-        <EditText
-            android:id="@+id/addressBar"
+        <!-- Omnibox: 48dp stadium pill, #303134 fill -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:background="@android:drawable/edit_text"
-            android:hint="Search or enter address"
-            android:imeOptions="actionGo"
-            android:inputType="textUri"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:singleLine="true" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_omnibox"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp">
 
-        <Button
-            android:id="@+id/goButton"
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/lockIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_shield"
+                android:tint="#9AA0A6" />
+
+            <EditText
+                android:id="@+id/addressBar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:background="@null"
+                android:hint="Search or type URL"
+                android:textColorHint="#9AA0A6"
+                android:textColor="#E3E3E3"
+                android:textSize="16sp"
+                android:imeOptions="actionGo"
+                android:inputType="textUri"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <!-- Profile avatar: 32dp circle -->
+        <ImageView
+            android:id="@+id/profileAvatar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="Profile"
+            android:src="@drawable/ic_profile" />
+
+        <!-- Tab badge: rounded-square outline 26dp, number 12sp bold -->
+        <FrameLayout
+            android:id="@+id/tabButton"
+            android:layout_width="48dp"
             android:layout_height="48dp"
-            android:text="Go" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Tabs">
+
+            <View
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_tab_badge" />
+
+            <TextView
+                android:id="@+id/tabCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="1"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#9AA0A6" />
+
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/menuButton"
@@ -51,22 +114,94 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Menu"
-            android:src="@android:drawable/ic_menu_more" />
+            android:src="@drawable/ic_more"
+            android:tint="#9AA0A6" />
 
     </LinearLayout>
 
-    <ProgressBar
+    <!-- Progress: 2dp blue line -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress"
-        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:max="100"
-        android:visibility="gone" />
+        android:layout_height="2dp"
+        android:visibility="gone"
+        app:indicatorColor="#8AB4F8"
+        app:trackColor="@android:color/transparent" />
 
-    <WebView
-        android:id="@+id/webview"
+    <!-- WebView container -->
+    <FrameLayout
+        android:id="@+id/tabContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:background="#1F1F1F">
+
+        <WebView
+            android:id="@+id/webview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <!-- Bottom tab strip (variant) -->
+    <LinearLayout
+        android:id="@+id/tabStrip"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#1F1F1F"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <HorizontalScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/tabStripItems"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" />
+
+        </HorizontalScrollView>
+
+        <ImageButton
+            android:id="@+id/newTabButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="New tab"
+            android:src="@drawable/ic_add"
+            android:tint="#E3E3E3" />
+
+        <ImageButton
+            android:id="@+id/expandTabsButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Show tabs"
+            android:src="@drawable/ic_expand"
+            android:tint="#E3E3E3" />
+
+    </LinearLayout>
+
+    <!-- Hidden for compatibility -->
+    <ImageButton
+        android:id="@+id/homeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:src="@drawable/ic_home" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/goButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="Go" />
 
 </LinearLayout>

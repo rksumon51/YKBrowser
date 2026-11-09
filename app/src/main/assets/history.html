@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>History</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#1f1f1f; color:#e3e3e3; font-family:Roboto, Arial, sans-serif; min-height:100vh; }
+  .header { padding:16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid #3c4043; position:sticky; top:0; background:#1f1f1f; }
+  .header h1 { font-size:20px; font-weight:500; }
+  .back { width:40px; height:40px; border-radius:50%; border:none; background:transparent; color:#e3e3e3; font-size:20px; cursor:pointer; }
+  .list { padding:8px 0; }
+  .item { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; }
+  .item:active { background:#3c4043; }
+  .fav { width:32px; height:32px; border-radius:50%; background:#303134; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+  .fav img { width:20px; height:20px; }
+  .info { flex:1; min-width:0; }
+  .title { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .url { font-size:13px; color:#9aa0a6; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .empty { text-align:center; color:#5f6368; padding:40px 20px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <button class="back" onclick="history.back()">←</button>
+  <h1>History</h1>
+</div>
+<div class="list" id="list"></div>
+<script>
+(function(){
+  try {
+    var data = JSON.parse(AndroidHome.getShortcuts());
+    var list = document.getElementById('list');
+    if (!data.length) { list.innerHTML = '<div class="empty">No browsing history yet</div>'; return; }
+    data.forEach(function(h){
+      var div = document.createElement('div');
+      div.className = 'item';
+      div.onclick = function(){ location.href = h.url; };
+      var host = '';
+      try { host = new URL(h.url).hostname; } catch(e){}
+      div.innerHTML = '<div class="fav"><img src="https://www.google.com/s2/favicons?domain='+encodeURIComponent(host)+'&sz=64" onerror="this.style.display=\'none\'"></div>' +
+        '<div class="info"><div class="title">'+escapeHtml(h.title||h.url)+'</div><div class="url">'+escapeHtml(h.url)+'</div></div>';
+      list.appendChild(div);
+    });
+  } catch(e){ document.getElementById('list').innerHTML = '<div class="empty">Error loading history</div>'; }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+})();
+</script>
+</body>
+</html>
