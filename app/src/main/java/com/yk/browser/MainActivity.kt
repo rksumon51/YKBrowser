@@ -30,6 +30,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.yk.browser.auth.AuthManager
 import com.yk.browser.backup.BackupManager
@@ -154,6 +155,13 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply the user's saved Dark mode choice before the UI is created.
+        if (Prefs.isDarkModeSet(this)) {
+            AppCompatDelegate.setDefaultNightMode(
+                if (Prefs.isDarkMode(this)) AppCompatDelegate.MODE_NIGHT_YES
+                else AppCompatDelegate.MODE_NIGHT_NO
+            )
+        }
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 

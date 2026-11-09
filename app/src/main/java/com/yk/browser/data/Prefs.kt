@@ -11,6 +11,7 @@ object Prefs {
     const val KEY_PIN_SET = "pin_set"
     const val KEY_CLOUD_ENABLED = "cloud_enabled"
     const val KEY_LOCAL_AUTO = "local_auto"
+    const val KEY_DARK_MODE = "dark_mode"
 
     private fun prefs(context: Context): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
@@ -31,6 +32,12 @@ object Prefs {
 
     fun isLocalAuto(c: Context): Boolean = prefs(c).getBoolean(KEY_LOCAL_AUTO, true)
     fun setLocalAuto(c: Context, v: Boolean) = prefs(c).edit().putBoolean(KEY_LOCAL_AUTO, v).apply()
+
+    // Dark mode override: unset = follow the system theme. Once the user
+    // toggles the switch in Settings, the choice is stored and wins.
+    fun isDarkModeSet(c: Context): Boolean = prefs(c).contains(KEY_DARK_MODE)
+    fun isDarkMode(c: Context): Boolean = prefs(c).getBoolean(KEY_DARK_MODE, false)
+    fun setDarkMode(c: Context, v: Boolean) = prefs(c).edit().putBoolean(KEY_DARK_MODE, v).apply()
 
     // Open tabs (plain prefs — tab URLs are not secrets)
     private const val TABS_FILE = "yk_tabs"

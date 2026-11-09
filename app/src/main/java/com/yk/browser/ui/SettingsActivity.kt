@@ -1,6 +1,7 @@
 package com.yk.browser.ui
 
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -11,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -44,6 +46,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnRestoreLocal: com.google.android.material.button.MaterialButton
     private lateinit var switchCloud: SwitchMaterial
     private lateinit var switchLocal: SwitchMaterial
+    private lateinit var switchDarkMode: SwitchMaterial
 
     private val googleSignInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -111,6 +114,7 @@ class SettingsActivity : AppCompatActivity() {
         btnRestoreLocal = findViewById(R.id.btnRestoreLocal)
         switchCloud = findViewById(R.id.switchCloud)
         switchLocal = findViewById(R.id.switchLocal)
+        switchDarkMode = findViewById(R.id.switchDarkMode)
         val btnBackupNow: com.google.android.material.button.MaterialButton = findViewById(R.id.btnBackupNow)
         val btnExport: com.google.android.material.button.MaterialButton = findViewById(R.id.btnExport)
         val btnImport: com.google.android.material.button.MaterialButton = findViewById(R.id.btnImport)
@@ -150,6 +154,15 @@ class SettingsActivity : AppCompatActivity() {
         switchCloud.setOnCheckedChangeListener { _, v -> Prefs.setCloudEnabled(this, v) }
         switchLocal.isChecked = Prefs.isLocalAuto(this)
         switchLocal.setOnCheckedChangeListener { _, v -> Prefs.setLocalAuto(this, v) }
+        // Dark mode: until the user toggles, the switch mirrors the system theme.
+        switchDarkMode.isChecked = if (Prefs.isDarkModeSet(this)) Prefs.isDarkMode(this) else isSystemDark()
+        switchDarkMode.setOnCheckedChangeListener { _, checked ->
+            Prefs.setDarkMode(this, checked)
+            AppCompatDelegate.setDefaultNightMode(
+                if (checked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            )
+            recreate()
+        }
 
         btnBackupNow.setOnClickListener {
             requirePin { pin ->
@@ -193,6 +206,11 @@ class SettingsActivity : AppCompatActivity() {
 
         refreshAccount()
     }
+
+    /** Current system theme (used only until the user picks Dark mode explicitly). */
+    private fun isSystemDark(): Boolean =
+        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
 
     private fun refreshAccount() {
         val email = AuthManager.currentEmail()
