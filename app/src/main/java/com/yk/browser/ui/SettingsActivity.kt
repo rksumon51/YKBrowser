@@ -236,20 +236,22 @@ class SettingsActivity : AppCompatActivity() {
         }
         container.addView(input)
         container.addView(showPin)
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Enter backup PIN")
             .setView(container)
-            .setPositiveButton("OK") { _, _ ->
-                val pin = input.text.toString()
-                if (pin.isEmpty()) {
-                    toast("Enter your PIN")
-                    return@setPositiveButton
-                }
-                BackupPinHolder.pin = pin
-                onPin(pin)
-            }
+            .setPositiveButton("OK", null)
             .setNegativeButton("Cancel", null)
             .show()
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val pin = input.text.toString()
+            if (pin.isEmpty()) {
+                input.error = "Enter your PIN"
+            } else {
+                BackupPinHolder.pin = pin
+                onPin(pin)
+                dialog.dismiss()
+            }
+        }
     }
 
     private fun askNewPin() {
@@ -275,23 +277,25 @@ class SettingsActivity : AppCompatActivity() {
         }
         container.addView(input)
         container.addView(showPin)
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Set backup PIN")
             .setMessage("This PIN encrypts your vault. Without it nobody — not even the cloud — can read your backup.")
             .setView(container)
-            .setPositiveButton("Save") { _, _ ->
-                val pin = input.text.toString()
-                if (pin.length < 4) {
-                    toast("PIN must be at least 4 characters")
-                    return@setPositiveButton
-                }
+            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel", null)
+            .show()
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val pin = input.text.toString()
+            if (pin.length < 4) {
+                input.error = "PIN must be at least 4 characters"
+            } else {
                 Prefs.setPinSet(this, true)
                 BackupPinHolder.pin = pin
                 refreshAccount()
                 toast("Backup PIN set")
+                dialog.dismiss()
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
     }
 
     private fun describe(r: BackupResult): String =

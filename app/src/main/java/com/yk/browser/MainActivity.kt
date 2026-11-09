@@ -585,26 +585,59 @@ class MainActivity : AppCompatActivity() {
         webview.loadUrl(input)
     }
 
+    /** Browser menu as a bottom sheet: icon + label rows, every action real. */
     private fun showMenu(anchor: View) {
-        PopupMenu(this, anchor).apply {
-            menu.add("Bookmark this page")
-            menu.add("History")
-            menu.add("Bookmarks")
-            menu.add("Saved logins")
-            menu.add("Backup now")
-            menu.add("Settings")
-            setOnMenuItemClickListener { item ->
-                when (item.title) {
-                    "Bookmark this page" -> toggleBookmark()
-                    "History" -> startActivity(Intent(this@MainActivity, HistoryActivity::class.java))
-                    "Bookmarks" -> startActivity(Intent(this@MainActivity, BookmarksActivity::class.java))
-                    "Saved logins" -> startActivity(Intent(this@MainActivity, LoginsActivity::class.java))
-                    "Backup now" -> lifecycleScope.launch { backupNow() }
-                    "Settings" -> startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+        val items = listOf(
+            R.drawable.ic_bookmark_border to "Bookmark this page",
+            R.drawable.ic_history to "History",
+            R.drawable.ic_bookmark to "Bookmarks",
+            R.drawable.ic_lock to "Saved logins",
+            R.drawable.ic_upload to "Backup now",
+            R.drawable.ic_settings to "Settings"
+        )
+        val dialog = BottomSheetDialog(this)
+        val list = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(8), dp(8), dp(8), dp(16))
+        }
+        for ((iconRes, label) in items) {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(16), dp(12), dp(16), dp(12))
+                val tv = TypedValue()
+                theme.resolveAttribute(android.R.attr.selectableItemBackground, tv, true)
+                background = resources.getDrawable(tv.resourceId, theme)
+                isClickable = true
+                setOnClickListener {
+                    dialog.dismiss()
+                    when (label) {
+                        "Bookmark this page" -> toggleBookmark()
+                        "History" -> startActivity(Intent(this@MainActivity, HistoryActivity::class.java))
+                        "Bookmarks" -> startActivity(Intent(this@MainActivity, BookmarksActivity::class.java))
+                        "Saved logins" -> startActivity(Intent(this@MainActivity, LoginsActivity::class.java))
+                        "Backup now" -> lifecycleScope.launch { backupNow() }
+                        "Settings" -> startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                    }
                 }
-                true
             }
-        }.show()
+            val icon = ImageView(this).apply {
+                setImageResource(iconRes)
+                setColorFilter(resolveColor(android.R.attr.textColorSecondary))
+                layoutParams = LinearLayout.LayoutParams(dp(24), dp(24))
+            }
+            val text = TextView(this).apply {
+                text = label
+                textSize = 16f
+                setTextColor(resolveColor(android.R.attr.textColorPrimary))
+                setPadding(dp(16), 0, 0, 0)
+            }
+            row.addView(icon)
+            row.addView(text)
+            list.addView(row)
+        }
+        dialog.setContentView(list)
+        dialog.show()
     }
 
     private suspend fun backupNow() {
@@ -756,15 +789,21 @@ class MainActivity : AppCompatActivity() {
         }
         container.addView(input)
         container.addView(showPin)
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Unlock backup")
             .setMessage("Enter your backup PIN to enable auto backup this session.")
             .setView(container)
-            .setPositiveButton("Unlock") { _, _ ->
-                val pin = input.text.toString()
-                if (pin.isNotEmpty()) BackupPinHolder.pin = pin
-            }
+            .setPositiveButton("Unlock", null)
             .setNegativeButton("Later", null)
             .show()
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val pin = input.text.toString()
+            if (pin.isEmpty()) {
+                input.error = "Enter your PIN"
+            } else {
+                BackupPinHolder.pin = pin
+                dialog.dismiss()
+            }
+        }
     }
 }

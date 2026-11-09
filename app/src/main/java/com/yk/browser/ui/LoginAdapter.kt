@@ -6,6 +6,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -35,6 +36,7 @@ class LoginAdapter(
 
     inner class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val tvLetter: TextView = view.findViewById(R.id.tvLetter)
+        val ivFavicon: ImageView = view.findViewById(R.id.ivFavicon)
         val tvHost: TextView = view.findViewById(R.id.tvHost)
         val tvUser: TextView = view.findViewById(R.id.tvUser)
         val btnCopy: com.google.android.material.button.MaterialButton = view.findViewById(R.id.btnCopy)
@@ -51,6 +53,7 @@ class LoginAdapter(
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val login = items[position]
         holder.tvLetter.text = login.host.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+        FaviconLoader.load(login.host, holder.ivFavicon, holder.tvLetter, scope)
         holder.tvHost.text = login.host
         holder.tvUser.text = login.username.ifEmpty { "(no username)" }
         holder.btnCopy.setOnClickListener {

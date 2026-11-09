@@ -31,13 +31,8 @@
     background:transparent; border:none; color:var(--text); cursor:pointer;
   }
   .icon-btn:active { background:var(--surface-hover); }
-  .avatar {
-    width:30px; height:30px; border-radius:50%;
-    background:linear-gradient(135deg,#8ab4f8,#c58af9);
-    display:flex; align-items:center; justify-content:center; margin:0 4px;
-  }
   .yk-logo {
-    width:118px; height:118px; border-radius:28px; margin:36px 0 28px;
+    width:76px; height:76px; border-radius:18px; margin:20px 0 22px;
     box-shadow:var(--shadow); user-select:none;
   }
   .searchbar {
@@ -59,13 +54,12 @@
   .pill:active { background:var(--surface-hover); }
   .shortcuts {
     width:94%; max-width:580px; margin-top:24px;
-    display:flex; gap:4px; overflow-x:auto; padding:8px 2px 24px;
-    scrollbar-width:none;
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:8px 4px;
+    padding:8px 2px 24px;
   }
-  .shortcuts::-webkit-scrollbar { display:none; }
   .sc {
     display:flex; flex-direction:column; align-items:center; gap:8px;
-    min-width:78px; text-decoration:none; color:var(--text); cursor:pointer;
+    min-width:0; text-decoration:none; color:var(--text); cursor:pointer;
     background:none; border:none; font-family:inherit; padding:4px 2px;
   }
   .sc .fav {
@@ -86,11 +80,6 @@
     <button class="icon-btn" onclick="goHome()" aria-label="Home">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </button>
-  </div>
-  <div class="right">
-    <div class="avatar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#1f1f1f"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-    </div>
   </div>
 </div>
 

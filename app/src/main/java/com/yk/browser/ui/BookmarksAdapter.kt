@@ -4,12 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.yk.browser.R
 import com.yk.browser.data.Bookmark
+import kotlinx.coroutines.CoroutineScope
 
 class BookmarksAdapter(
+    private val scope: CoroutineScope,
     private val onOpen: (Bookmark) -> Unit,
     private val onDelete: (Bookmark) -> Unit
 ) : RecyclerView.Adapter<BookmarksAdapter.Holder>() {
@@ -24,6 +27,7 @@ class BookmarksAdapter(
 
     inner class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val tvLetter: TextView = view.findViewById(R.id.tvLetter)
+        val ivFavicon: ImageView = view.findViewById(R.id.ivFavicon)
         val tvTitle: TextView = view.findViewById(R.id.tvTitle)
         val tvUrl: TextView = view.findViewById(R.id.tvUrl)
         val btnDelete: ImageButton = view.findViewById(R.id.btnDelete)
@@ -40,6 +44,7 @@ class BookmarksAdapter(
         val bookmark = items[position]
         holder.tvLetter.text = (bookmark.title.takeIf { it.isNotBlank() } ?: bookmark.url)
             .firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+        FaviconLoader.load(FaviconLoader.hostOf(bookmark.url), holder.ivFavicon, holder.tvLetter, scope)
         holder.tvTitle.text = bookmark.title.ifEmpty { bookmark.url }
         holder.tvUrl.text = bookmark.url
         holder.itemView.setOnClickListener { onOpen(bookmark) }

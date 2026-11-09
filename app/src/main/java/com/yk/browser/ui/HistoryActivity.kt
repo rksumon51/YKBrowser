@@ -28,7 +28,7 @@ class HistoryActivity : AppCompatActivity() {
         val recycler: RecyclerView = findViewById(R.id.recycler)
         val emptyState: LinearLayout = findViewById(R.id.emptyState)
         val db = AppDatabase.get(this)
-        val adapter = HistoryAdapter { entry ->
+        val adapter = HistoryAdapter(lifecycleScope) { entry ->
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(entry.url), this, MainActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(intent)

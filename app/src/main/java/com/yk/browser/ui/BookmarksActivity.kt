@@ -31,6 +31,7 @@ class BookmarksActivity : AppCompatActivity() {
         val emptyState: LinearLayout = findViewById(R.id.emptyState)
         val db = AppDatabase.get(this)
         adapter = BookmarksAdapter(
+            lifecycleScope,
             onOpen = { bookmark ->
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(bookmark.url), this, MainActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
