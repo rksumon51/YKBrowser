@@ -14,7 +14,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.YKBrowser.Chrome"
+            android:theme="@style/Theme.YKBrowser"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,6 +23,8 @@
         </activity>
         <activity android:name=".ui.LoginsActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
+        <activity android:name=".ui.HistoryActivity" android:exported="false" />
+        <activity android:name=".ui.BookmarksActivity" android:exported="false" />
 
     </application>
 </manifest>

@@ -4,20 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1F1F1F">
+    android:background="@color/browser_bg">
 
-    <!-- Chrome toolbar: back, forward, home, omnibox, avatar, tab badge, menu -->
+    <!-- Chrome toolbar: back, forward, omnibox, avatar, tab badge, menu -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#1F1F1F"
+        android:background="@color/browser_bg"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:elevation="4dp">
+        android:paddingEnd="4dp">
 
         <ImageButton
             android:id="@+id/backButton"
@@ -26,7 +25,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_back"
-            android:tint="#9AA0A6" />
+            android:tint="?attr/colorOnSurfaceVariant" />
 
         <ImageButton
             android:id="@+id/forwardButton"
@@ -35,9 +34,9 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Forward"
             android:src="@drawable/ic_forward"
-            android:tint="#9AA0A6" />
+            android:tint="?attr/colorOnSurfaceVariant" />
 
-        <!-- Omnibox: 48dp stadium pill, #303134 fill -->
+        <!-- Omnibox: 48dp stadium pill -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="48dp"
@@ -52,8 +51,8 @@
                 android:id="@+id/lockIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:src="@drawable/ic_shield"
-                android:tint="#9AA0A6" />
+                android:src="@drawable/ic_lock"
+                android:tint="?attr/colorOnSurfaceVariant" />
 
             <EditText
                 android:id="@+id/addressBar"
@@ -63,8 +62,8 @@
                 android:layout_marginStart="10dp"
                 android:background="@null"
                 android:hint="Search or type URL"
-                android:textColorHint="#9AA0A6"
-                android:textColor="#E3E3E3"
+                android:textColorHint="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="16sp"
                 android:imeOptions="actionGo"
                 android:inputType="textUri"
@@ -80,7 +79,8 @@
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:contentDescription="Profile"
-            android:src="@drawable/ic_profile" />
+            android:src="@drawable/ic_profile"
+            android:tint="?attr/colorOnSurfaceVariant" />
 
         <!-- Tab badge: rounded-square outline 26dp, number 12sp bold -->
         <FrameLayout
@@ -104,7 +104,7 @@
                 android:text="1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#9AA0A6" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
         </FrameLayout>
 
@@ -115,17 +115,17 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Menu"
             android:src="@drawable/ic_more"
-            android:tint="#9AA0A6" />
+            android:tint="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 
-    <!-- Progress: 2dp blue line -->
+    <!-- Progress: 2dp primary line -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:visibility="gone"
-        app:indicatorColor="#8AB4F8"
+        app:indicatorColor="?attr/colorPrimary"
         app:trackColor="@android:color/transparent" />
 
     <!-- WebView container -->
@@ -134,7 +134,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#1F1F1F">
+        android:background="@color/browser_bg">
 
         <WebView
             android:id="@+id/webview"
@@ -143,14 +143,14 @@
 
     </FrameLayout>
 
-    <!-- Bottom tab strip (variant) -->
+    <!-- Bottom tab strip -->
     <LinearLayout
         android:id="@+id/tabStrip"
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#1F1F1F"
+        android:background="@color/browser_bg"
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
 
@@ -176,7 +176,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="New tab"
             android:src="@drawable/ic_add"
-            android:tint="#E3E3E3" />
+            android:tint="?attr/colorOnSurface" />
 
         <ImageButton
             android:id="@+id/expandTabsButton"
@@ -185,23 +185,8 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Show tabs"
             android:src="@drawable/ic_expand"
-            android:tint="#E3E3E3" />
+            android:tint="?attr/colorOnSurface" />
 
     </LinearLayout>
-
-    <!-- Hidden for compatibility -->
-    <ImageButton
-        android:id="@+id/homeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:src="@drawable/ic_home" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/goButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="Go" />
 
 </LinearLayout>

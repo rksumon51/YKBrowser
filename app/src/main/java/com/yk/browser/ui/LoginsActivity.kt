@@ -1,6 +1,8 @@
 package com.yk.browser.ui
 
 import android.os.Bundle
+import android.view.View
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,10 +23,15 @@ class LoginsActivity : AppCompatActivity() {
             .setNavigationOnClickListener { finish() }
 
         val recycler: RecyclerView = findViewById(R.id.recycler)
+        val emptyState: LinearLayout = findViewById(R.id.emptyState)
         val db = AppDatabase.get(this)
-        val adapter = LoginAdapter(this, lifecycleScope) { login ->
-            db.loginDao().delete(login)
-        }
+        val adapter = LoginAdapter(
+            this, lifecycleScope,
+            onDelete = { login -> db.loginDao().delete(login) },
+            onCountChanged = { count ->
+                emptyState.visibility = if (count == 0) View.VISIBLE else View.GONE
+            }
+        )
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
 

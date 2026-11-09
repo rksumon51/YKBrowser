@@ -1,56 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- One coherent Material 3 DayNight theme for every screen. -->
     <style name="Theme.YKBrowser" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/yk_primary</item>
-        <item name="colorPrimaryDark">@color/yk_primary_dark</item>
-        <item name="colorOnPrimary">@color/yk_on_primary</item>
-        <item name="colorPrimaryContainer">@color/yk_primary_container</item>
-        <item name="colorSecondary">@color/yk_secondary</item>
-        <item name="colorSurface">@color/yk_surface</item>
-        <item name="colorSurfaceVariant">@color/yk_surface_variant</item>
-        <item name="colorOnSurface">@color/yk_on_surface</item>
-        <item name="colorOnSurfaceVariant">@color/yk_on_surface_variant</item>
-        <item name="colorOutline">@color/yk_outline</item>
-        <item name="colorError">@color/yk_error</item>
-        <item name="android:statusBarColor">@color/yk_surface</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="colorPrimary">@color/browser_primary</item>
+        <item name="colorOnPrimary">@color/browser_on_primary</item>
+        <item name="colorPrimaryContainer">@color/browser_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/browser_on_primary_container</item>
+        <item name="colorSecondary">@color/browser_secondary</item>
+        <item name="colorSurface">@color/browser_surface</item>
+        <item name="colorOnSurface">@color/browser_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/browser_text_secondary</item>
+        <item name="colorSurfaceVariant">@color/browser_surface_container</item>
+        <item name="colorSurfaceContainer">@color/browser_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/browser_surface_container_high</item>
+        <item name="colorOutline">@color/browser_divider</item>
+        <item name="colorError">@color/browser_error</item>
+        <item name="android:statusBarColor">@color/browser_bg</item>
+        <item name="android:windowLightStatusBar">@bool/is_light_status_bar</item>
+        <item name="android:navigationBarColor">@color/browser_bg</item>
+        <item name="android:windowLightNavigationBar">@bool/is_light_status_bar</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.YKBrowser.BottomSheetDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.YKBrowser.Dialog</item>
     </style>
 
-    <style name="Theme.YKBrowser.VIP" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/vip_accent</item>
-        <item name="colorOnPrimary">@color/vip_text</item>
-        <item name="colorSurface">@color/vip_bg</item>
-        <item name="colorOnSurface">@color/vip_text</item>
-        <item name="colorOnSurfaceVariant">@color/vip_text2</item>
-        <item name="android:statusBarColor">@color/vip_bg</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">@color/vip_bg</item>
+    <!-- Rounded top corners for bottom sheets (tab switcher). -->
+    <style name="ThemeOverlay.YKBrowser.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.YKBrowser.BottomSheet</item>
     </style>
 
-    <style name="Theme.YKBrowser.Splash" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:windowBackground">@drawable/splash_bg</item>
-        <item name="android:statusBarColor">@color/vip_bg</item>
+    <style name="Widget.YKBrowser.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="shapeAppearance">@style/ShapeAppearance.YKBrowser.BottomSheet</item>
     </style>
 
-    <style name="Theme.YKBrowser.Chrome" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/chrome_blue</item>
-        <item name="colorOnPrimary">@color/chrome_text_dark</item>
-        <item name="colorSurface">@color/chrome_toolbar_light</item>
-        <item name="colorOnSurface">@color/chrome_text_light</item>
-        <item name="colorOnSurfaceVariant">@color/chrome_hint</item>
-        <item name="android:statusBarColor">@color/chrome_toolbar_light</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@color/chrome_toolbar_light</item>
+    <style name="ShapeAppearance.YKBrowser.BottomSheet" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
-    <style name="Theme.YKBrowser.Chrome.Dark" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/chrome_blue_dark</item>
-        <item name="colorOnPrimary">@color/chrome_toolbar_dark</item>
-        <item name="colorSurface">@color/chrome_toolbar_dark</item>
-        <item name="colorOnSurface">@color/chrome_text_dark</item>
-        <item name="colorOnSurfaceVariant">@color/chrome_hint</item>
-        <item name="android:statusBarColor">@color/chrome_toolbar_dark</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">@color/chrome_toolbar_dark</item>
+    <!-- Rounded Material 3 dialogs (PIN dialogs). -->
+    <style name="ThemeOverlay.YKBrowser.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="shapeAppearance">@style/ShapeAppearance.YKBrowser.Dialog</item>
+    </style>
+
+    <style name="ShapeAppearance.YKBrowser.Dialog" parent="ShapeAppearance.Material3.ExtraLargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
     </style>
 </resources>

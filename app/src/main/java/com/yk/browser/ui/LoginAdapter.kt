@@ -20,7 +20,8 @@ import kotlinx.coroutines.withContext
 class LoginAdapter(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val onDelete: suspend (SavedLogin) -> Unit
+    private val onDelete: suspend (SavedLogin) -> Unit,
+    private val onCountChanged: ((Int) -> Unit)? = null
 ) : RecyclerView.Adapter<LoginAdapter.Holder>() {
 
     private val items = mutableListOf<SavedLogin>()
@@ -29,9 +30,11 @@ class LoginAdapter(
         items.clear()
         items.addAll(list)
         notifyDataSetChanged()
+        onCountChanged?.invoke(items.size)
     }
 
     inner class Holder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvLetter: TextView = view.findViewById(R.id.tvLetter)
         val tvHost: TextView = view.findViewById(R.id.tvHost)
         val tvUser: TextView = view.findViewById(R.id.tvUser)
         val btnCopy: com.google.android.material.button.MaterialButton = view.findViewById(R.id.btnCopy)
@@ -47,6 +50,7 @@ class LoginAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val login = items[position]
+        holder.tvLetter.text = login.host.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
         holder.tvHost.text = login.host
         holder.tvUser.text = login.username.ifEmpty { "(no username)" }
         holder.btnCopy.setOnClickListener {
@@ -67,6 +71,7 @@ class LoginAdapter(
                     if (pos != RecyclerView.NO_POSITION) {
                         items.removeAt(pos)
                         notifyItemRemoved(pos)
+                        onCountChanged?.invoke(items.size)
                     }
                 }
             }

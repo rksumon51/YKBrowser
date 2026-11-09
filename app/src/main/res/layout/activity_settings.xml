@@ -3,21 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/yk_surface_container">
+    android:background="@color/browser_bg">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/yk_surface">
+        android:background="@color/browser_surface">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Settings"
-            app:titleTextColor="@color/yk_on_surface"
+            app:titleTextColor="?attr/colorOnSurface"
             app:navigationIcon="@android:drawable/ic_menu_revert"
-            app:navigationIconTint="@color/yk_on_surface_variant" />
+            app:navigationIconTint="?attr/colorOnSurfaceVariant" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -34,12 +34,9 @@
 
             <!-- Account card -->
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.YKBrowser.Card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="1dp"
-                app:strokeColor="@color/yk_outline_variant"
-                app:strokeWidth="1dp">
+                android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -47,13 +44,28 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Account"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/yk_on_surface" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_person"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Account"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorOnSurface" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tvAccount"
@@ -62,40 +74,65 @@
                         android:layout_marginTop="8dp"
                         android:text="Not signed in"
                         android:textSize="15sp"
-                        android:textColor="@color/yk_on_surface_variant" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <!-- Shown only when Firebase is not configured -->
+                    <LinearLayout
+                        android:id="@+id/tvFirebaseNotice"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_tab_chip_active"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="12dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_info"
+                            app:tint="?attr/colorOnPrimaryContainer" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:text="Firebase is not configured — Google sign-in and cloud backup are unavailable. Add google-services.json and rebuild to enable them."
+                            android:textSize="13sp"
+                            android:textColor="?attr/colorOnPrimaryContainer" />
+
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSignIn"
+                        style="@style/Widget.YKBrowser.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Sign in with Google"
                         android:textAllCaps="false"
-                        app:icon="@android:drawable/ic_menu_share"
-                        app:cornerRadius="12dp" />
+                        app:icon="@drawable/ic_person" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSignOut"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.YKBrowser.Button.Outlined"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Sign out"
-                        android:textAllCaps="false"
-                        app:cornerRadius="12dp" />
+                        android:textAllCaps="false" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Backup card -->
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.YKBrowser.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="1dp"
-                app:strokeColor="@color/yk_outline_variant"
-                app:strokeWidth="1dp">
+                android:layout_marginTop="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -103,24 +140,38 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Backup &amp; Restore"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/yk_on_surface" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_cloud"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Backup &amp; Restore"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorOnSurface" />
+
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSetPin"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        style="@style/Widget.YKBrowser.Button.Tonal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Set backup PIN"
                         android:textAllCaps="false"
-                        app:icon="@android:drawable/ic_lock_lock"
-                        app:cornerRadius="12dp" />
+                        app:icon="@drawable/ic_lock" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchCloud"
@@ -128,7 +179,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Cloud backup"
-                        android:textColor="@color/yk_on_surface"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="15sp" />
 
                     <TextView
@@ -136,7 +187,7 @@
                         android:layout_height="wrap_content"
                         android:text="Encrypted backup to your Google account"
                         android:textSize="13sp"
-                        android:textColor="@color/yk_on_surface_variant" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchLocal"
@@ -144,7 +195,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Local auto backup"
-                        android:textColor="@color/yk_on_surface"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="15sp" />
 
                     <TextView
@@ -152,7 +203,7 @@
                         android:layout_height="wrap_content"
                         android:text="Automatic encrypted backup on this device"
                         android:textSize="13sp"
-                        android:textColor="@color/yk_on_surface_variant" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
@@ -162,13 +213,13 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnBackupNow"
+                        style="@style/Widget.YKBrowser.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Backup now"
                         android:textAllCaps="false"
-                        app:icon="@android:drawable/ic_menu_upload"
-                        app:cornerRadius="12dp" />
+                        app:icon="@drawable/ic_upload" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -178,24 +229,24 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnRestoreCloud"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            style="@style/Widget.YKBrowser.Button.Outlined"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Cloud"
+                            android:text="Restore cloud"
                             android:textAllCaps="false"
-                            app:cornerRadius="12dp" />
+                            app:icon="@drawable/ic_restore" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnRestoreLocal"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            style="@style/Widget.YKBrowser.Button.Outlined"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="8dp"
-                            android:text="Local"
+                            android:text="Restore local"
                             android:textAllCaps="false"
-                            app:cornerRadius="12dp" />
+                            app:icon="@drawable/ic_restore" />
 
                     </LinearLayout>
 
@@ -206,7 +257,7 @@
                         android:text="Backup file (.ykb)"
                         android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="@color/yk_on_surface" />
+                        android:textColor="?attr/colorOnSurface" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -216,26 +267,24 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnExport"
-                            style="@style/Widget.Material3.Button.TonalButton"
+                            style="@style/Widget.YKBrowser.Button.Tonal"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Export"
+                            android:text="Export .ykb"
                             android:textAllCaps="false"
-                            app:icon="@android:drawable/ic_menu_save"
-                            app:cornerRadius="12dp" />
+                            app:icon="@drawable/ic_download" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnImport"
-                            style="@style/Widget.Material3.Button.TonalButton"
+                            style="@style/Widget.YKBrowser.Button.Tonal"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="8dp"
-                            android:text="Import"
+                            android:text="Import .ykb"
                             android:textAllCaps="false"
-                            app:icon="@android:drawable/ic_menu_agenda"
-                            app:cornerRadius="12dp" />
+                            app:icon="@drawable/ic_upload" />
 
                     </LinearLayout>
 
@@ -243,13 +292,14 @@
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
+                android:id="@+id/tvVersion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:gravity="center"
-                android:text="YKBrowser v1.0"
+                android:text="YKBrowser"
                 android:textSize="13sp"
-                android:textColor="@color/yk_on_surface_variant" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

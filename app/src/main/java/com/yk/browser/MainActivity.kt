@@ -1,9 +1,12 @@
 package com.yk.browser
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.text.TextUtils
+import android.util.TypedValue
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
@@ -12,6 +15,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.CookieManager
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -23,19 +27,24 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.yk.browser.auth.AuthManager
 import com.yk.browser.backup.BackupManager
 import com.yk.browser.backup.BackupPinHolder
 import com.yk.browser.backup.BackupResult
 import com.yk.browser.crypto.CryptoManager
 import com.yk.browser.data.AppDatabase
+import com.yk.browser.data.Bookmark
 import com.yk.browser.data.HistoryEntry
 import com.yk.browser.data.Prefs
 import com.yk.browser.data.SavedLogin
 import com.yk.browser.data.SessionCookie
 import com.yk.browser.sync.SyncScheduler
+import com.yk.browser.ui.BookmarksActivity
+import com.yk.browser.ui.HistoryActivity
 import com.yk.browser.ui.LoginsActivity
 import com.yk.browser.ui.SettingsActivity
 import com.yk.browser.web.CookieBackupHelper
@@ -54,7 +63,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabCountView: TextView
     private lateinit var addressBar: EditText
     private lateinit var progress: LinearProgressIndicator
+    private lateinit var backButton: ImageButton
+    private lateinit var forwardButton: ImageButton
     private val db by lazy { AppDatabase.get(this) }
+
+    /** Per-tab favicons captured from the WebViews (real site icons for the tab strip). */
+    private val faviconMap = mutableMapOf<WebView, Bitmap>()
 
     /** Unlimited tabs: every tab is its own WebView; no cap on the count. */
     private val tabs = mutableListOf<WebView>()
@@ -76,6 +90,68 @@ class MainActivity : AppCompatActivity() {
         val time: Long
     )
 
+    /** Home page URL with the current theme (?theme=dark|light) so home.html matches the app theme. */
+    private fun homeUrl(): String = HOME_URL + if (isDarkMode()) "?theme=dark" else "?theme=light"
+
+    private fun isDarkMode(): Boolean =
+        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+    /** Strips the ?theme= param so stored tab URLs stay clean. */
+    private fun stripThemeParam(url: String): String =
+        if (url.startsWith(HOME_URL)) HOME_URL else url
+
+    /** Resolves a theme attribute (?attr/...) to a concrete color int. */
+    private fun resolveColor(attr: Int): Int {
+        val tv = TypedValue()
+        theme.resolveAttribute(attr, tv, true)
+        return tv.data
+    }
+
+    /** Back/Forward buttons: proper enabled + dimmed state (Material disabled = 38% alpha). */
+    private fun updateNavButtons() {
+        backButton.isEnabled = webview.canGoBack()
+        forwardButton.isEnabled = webview.canGoForward()
+        backButton.alpha = if (webview.canGoBack()) 1f else 0.38f
+        forwardButton.alpha = if (webview.canGoForward()) 1f else 0.38f
+    }
+
+    /** Account sheet: shows sign-in state; opens Settings to manage the account. */
+    private fun showAccountMenu(anchor: View) {
+        val email = AuthManager.currentEmail()
+        PopupMenu(this, anchor).apply {
+            menu.add(if (email != null) "Signed in as $email" else "Not signed in").isEnabled = false
+            menu.add("Manage account")
+            setOnMenuItemClickListener {
+                startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                true
+            }
+        }.show()
+    }
+
+    /** Toggles a bookmark for the current page (adds it, or removes it if already saved). */
+    private fun toggleBookmark() {
+        val url = webview.url ?: return
+        val title = webview.title?.takeIf { it.isNotBlank() } ?: url
+        if (url.startsWith("file:///android_asset/") || url.isBlank()) {
+            Toast.makeText(this, "Cannot bookmark this page", Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val existing = db.bookmarkDao().findByUrl(url)
+            if (existing != null) {
+                db.bookmarkDao().deleteByUrl(url)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Bookmark removed", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                db.bookmarkDao().insert(Bookmark(title = title, url = url))
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Bookmarked", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,10 +161,8 @@ class MainActivity : AppCompatActivity() {
         addressBar = findViewById(R.id.addressBar)
         progress = findViewById(R.id.progress)
         tabCountView = findViewById(R.id.tabCount)
-        val goButton: MaterialButton = findViewById(R.id.goButton)
-        val backButton: ImageButton = findViewById(R.id.backButton)
-        val forwardButton: ImageButton = findViewById(R.id.forwardButton)
-        val homeButton: ImageButton = findViewById(R.id.homeButton)
+        backButton = findViewById(R.id.backButton)
+        forwardButton = findViewById(R.id.forwardButton)
         val menuButton: ImageButton = findViewById(R.id.menuButton)
         val tabButton: android.widget.FrameLayout = findViewById(R.id.tabButton)
         val newTabButton: ImageButton = findViewById(R.id.newTabButton)
@@ -121,20 +195,15 @@ class MainActivity : AppCompatActivity() {
             }
             switchToTab(current)
         } else {
-            if (savedInstanceState == null) webview.loadUrl(HOME_URL)
+            if (savedInstanceState == null) webview.loadUrl(homeUrl())
             updateTabStrip()
         }
 
         tabButton.setOnClickListener { showTabSwitcher() }
         newTabButton.setOnClickListener { createNewTab() }
-        profileAvatar.setOnClickListener {
-            Toast.makeText(this, "Profile", Toast.LENGTH_SHORT).show()
-        }
+        profileAvatar.setOnClickListener { showAccountMenu(profileAvatar) }
         findViewById<ImageButton>(R.id.expandTabsButton)?.setOnClickListener { showTabSwitcher() }
 
-        homeButton.setOnClickListener { webview.loadUrl(HOME_URL) }
-
-        goButton.setOnClickListener { loadFromBar() }
         addressBar.setOnEditorActionListener { _, _, _ -> loadFromBar(); true }
         backButton.setOnClickListener { if (webview.canGoBack()) webview.goBack() }
         forwardButton.setOnClickListener { if (webview.canGoForward()) webview.goForward() }
@@ -142,6 +211,15 @@ class MainActivity : AppCompatActivity() {
 
         SyncScheduler.schedule(this)
         maybeAskPin()
+
+        // Open a URL passed by History/Bookmarks (ACTION_VIEW) in the current tab.
+        intent?.data?.toString()?.takeIf { it.isNotBlank() }?.let { webview.loadUrl(it) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.data?.toString()?.takeIf { it.isNotBlank() }?.let { webview.loadUrl(it) }
     }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
@@ -166,6 +244,11 @@ class MainActivity : AppCompatActivity() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 view.loadUrl(request.url.toString())
                 return true
+            }
+
+            override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                if (view == webview) updateNavButtons()
+                favicon?.let { faviconMap[view] = it }
             }
 
             override fun onPageFinished(view: WebView, url: String) {
@@ -199,12 +282,21 @@ class MainActivity : AppCompatActivity() {
                         }
                     } catch (e: Exception) { /* skip */ }
                 }
+                view.favicon?.let { faviconMap[view] = it }
+                updateNavButtons()
                 updateTabStrip()
                 saveTabs()
             }
         }
 
         web.webChromeClient = object : WebChromeClient() {
+            override fun onReceivedIcon(view: WebView, icon: Bitmap?) {
+                if (icon != null) {
+                    faviconMap[view] = icon
+                    updateTabStrip()
+                }
+            }
+
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 // Only update progress for current tab
                 if (view == webview) {
@@ -225,7 +317,7 @@ class MainActivity : AppCompatActivity() {
         tabs.add(newWebView)
         tabContainer.addView(newWebView)
         switchToTab(tabs.size - 1)
-        newWebView.loadUrl(HOME_URL)
+        newWebView.loadUrl(homeUrl())
     }
 
     private fun switchToTab(index: Int) {
@@ -239,7 +331,7 @@ class MainActivity : AppCompatActivity() {
         val pending = webview.tag as? String
         if (webview.url == null && pending != null) {
             webview.tag = null
-            webview.loadUrl(pending)
+            webview.loadUrl(if (pending == HOME_URL) homeUrl() else pending)
         }
         val url = webview.url
         if (url != null && !url.startsWith("file:///android_asset/")) {
@@ -248,6 +340,7 @@ class MainActivity : AppCompatActivity() {
             addressBar.setText("")
         }
         progress.visibility = View.GONE
+        updateNavButtons()
         updateTabStrip()
         saveTabs()
     }
@@ -256,7 +349,7 @@ class MainActivity : AppCompatActivity() {
         if (index < 0 || index >= tabs.size) return
         if (tabs.size <= 1) {
             // Don't close last tab, just load home
-            webview.loadUrl(HOME_URL)
+            webview.loadUrl(homeUrl())
             saveTabs()
             return
         }
@@ -281,47 +374,73 @@ class MainActivity : AppCompatActivity() {
 
     private fun createTabStripItem(index: Int): View {
         val isActive = index == currentTabIndex
+        val wv = tabs[index]
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            val pad = (12 * resources.displayMetrics.density).toInt()
+            val pad = dp(8)
             setPadding(pad, pad, pad, pad)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(44)
+            ).apply { marginEnd = dp(6) }
             setBackgroundResource(
-                if (isActive) android.R.drawable.dialog_holo_dark_frame
-                else android.R.color.transparent
+                if (isActive) R.drawable.bg_tab_chip_active else android.R.color.transparent
             )
             isClickable = true
             isFocusable = true
         }
-        val dot = View(this).apply {
-            val size = (40 * resources.displayMetrics.density).toInt()
-            layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                marginEnd = (8 * resources.displayMetrics.density).toInt()
+        // Favicon (real site icon from the WebView) or first-letter fallback.
+        val icon = faviconMap[wv]
+        if (icon != null) {
+            val fav = ImageView(this).apply {
+                setImageBitmap(icon)
+                val size = dp(20)
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    marginEnd = dp(6)
+                }
             }
-            setBackgroundResource(android.R.drawable.presence_online)
+            container.addView(fav)
+        } else {
+            val letter = (wv.title?.takeIf { it.isNotBlank() } ?: wv.url ?: "N")
+                .firstOrNull()?.uppercaseChar()?.toString() ?: "N"
+            val fallback = TextView(this).apply {
+                text = letter
+                gravity = Gravity.CENTER
+                setTextColor(resolveColor(android.R.attr.textColorSecondary))
+                textSize = 12f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                val size = dp(20)
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    marginEnd = dp(6)
+                }
+                setBackgroundResource(R.drawable.bg_favicon_circle)
+            }
+            container.addView(fallback)
         }
         val label = TextView(this).apply {
-            text = tabs[index].title?.takeIf { it.isNotBlank() } ?: "New tab"
-            setTextColor(if (isActive) 0xFFFFFFFF.toInt() else 0xFF9AA0A6.toInt())
+            text = wv.title?.takeIf { it.isNotBlank() } ?: "New tab"
+            setTextColor(resolveColor(android.R.attr.textColorPrimary))
             textSize = 13f
             maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            layoutParams = LinearLayout.LayoutParams(dp(96), LinearLayout.LayoutParams.WRAP_CONTENT)
         }
         val closeBtn = ImageButton(this).apply {
-            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-            setColorFilter(0xFF9AA0A6.toInt())
+            setImageResource(R.drawable.ic_close)
+            setColorFilter(resolveColor(android.R.attr.textColorSecondary))
             background = null
-            val size = (32 * resources.displayMetrics.density).toInt()
+            val size = dp(32)
             layoutParams = LinearLayout.LayoutParams(size, size)
             setOnClickListener { closeTab(index) }
         }
-        container.addView(dot)
         container.addView(label)
         container.addView(closeBtn)
         container.setOnClickListener { switchToTab(index) }
         return container
     }
 
-    /** Real tab switcher: scrollable list of ALL open tabs (no cap), tap to switch,
+    /** Real tab switcher: scrollable cards for ALL open tabs (no cap), tap to switch,
      *  X to close, "+ New tab" to open one more. */
     private fun showTabSwitcher() {
         val sheet = BottomSheetDialog(this)
@@ -332,8 +451,8 @@ class MainActivity : AppCompatActivity() {
         }
         val title = TextView(this).apply {
             text = "${tabs.size} tabs open"
-            setTextColor(0xFFFFFFFF.toInt())
-            textSize = 16f
+            setTextColor(resolveColor(android.R.attr.textColorPrimary))
+            textSize = 18f
             setTypeface(null, android.graphics.Typeface.BOLD)
             setPadding(0, 0, 0, dp(12))
         }
@@ -346,17 +465,49 @@ class MainActivity : AppCompatActivity() {
         val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         for (i in tabs.indices) {
             val wv = tabs[i]
+            val isActive = i == currentTabIndex
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 val pad = dp(12)
                 setPadding(pad, pad, pad, pad)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = dp(8) }
                 setBackgroundResource(
-                    if (i == currentTabIndex) android.R.drawable.dialog_holo_dark_frame
-                    else android.R.color.transparent
+                    if (isActive) R.drawable.bg_tab_chip_active else android.R.color.transparent
                 )
                 isClickable = true
                 isFocusable = true
+            }
+            // Favicon or first-letter fallback.
+            val icon = faviconMap[wv]
+            if (icon != null) {
+                val fav = ImageView(this).apply {
+                    setImageBitmap(icon)
+                    val size = dp(32)
+                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                        marginEnd = dp(12)
+                    }
+                }
+                row.addView(fav)
+            } else {
+                val letter = (wv.title?.takeIf { it.isNotBlank() } ?: wv.url ?: "N")
+                    .firstOrNull()?.uppercaseChar()?.toString() ?: "N"
+                val fallback = TextView(this).apply {
+                    text = letter
+                    gravity = Gravity.CENTER
+                    setTextColor(resolveColor(android.R.attr.textColorSecondary))
+                    textSize = 14f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    val size = dp(32)
+                    layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                        marginEnd = dp(12)
+                    }
+                    setBackgroundResource(R.drawable.bg_favicon_circle)
+                }
+                row.addView(fallback)
             }
             val texts = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -368,23 +519,31 @@ class MainActivity : AppCompatActivity() {
                     ?: wv.url?.takeIf { it.isNotBlank() }
                     ?: (wv.tag as? String)?.takeIf { it.isNotBlank() }
                     ?: "New tab"
-                setTextColor(if (i == currentTabIndex) 0xFFFFFFFF.toInt() else 0xFFE3E3E3.toInt())
-                textSize = 14f
+                setTextColor(resolveColor(android.R.attr.textColorPrimary))
+                textSize = 15f
+                setTypeface(
+                    null,
+                    if (isActive) android.graphics.Typeface.BOLD
+                    else android.graphics.Typeface.NORMAL
+                )
                 maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
             }
+            val rawUrl = wv.url ?: (wv.tag as? String) ?: "New tab"
             val urlView = TextView(this).apply {
-                text = wv.url ?: (wv.tag as? String) ?: "New tab"
-                setTextColor(0xFF9AA0A6.toInt())
+                text = if (rawUrl.startsWith("file:///android_asset/")) "New tab" else rawUrl
+                setTextColor(resolveColor(android.R.attr.textColorSecondary))
                 textSize = 12f
                 maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
             }
             texts.addView(titleView)
             texts.addView(urlView)
             val closeBtn = ImageButton(this).apply {
-                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                setColorFilter(0xFF9AA0A6.toInt())
+                setImageResource(R.drawable.ic_close)
+                setColorFilter(resolveColor(android.R.attr.textColorSecondary))
                 background = null
-                val size = dp(32)
+                val size = dp(40)
                 layoutParams = LinearLayout.LayoutParams(size, size)
                 setOnClickListener { closeTab(i); sheet.dismiss() }
             }
@@ -408,7 +567,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Persists open-tab URLs so unlimited tabs survive an app restart. */
     private fun saveTabs() {
-        val urls = tabs.map { it.url ?: (it.tag as? String) ?: HOME_URL }
+        val urls = tabs.map { stripThemeParam(it.url ?: (it.tag as? String) ?: HOME_URL) }
         Prefs.saveOpenTabs(this, urls, currentTabIndex)
     }
 
@@ -428,11 +587,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMenu(anchor: View) {
         PopupMenu(this, anchor).apply {
+            menu.add("Bookmark this page")
+            menu.add("History")
+            menu.add("Bookmarks")
             menu.add("Saved logins")
             menu.add("Backup now")
             menu.add("Settings")
             setOnMenuItemClickListener { item ->
                 when (item.title) {
+                    "Bookmark this page" -> toggleBookmark()
+                    "History" -> startActivity(Intent(this@MainActivity, HistoryActivity::class.java))
+                    "Bookmarks" -> startActivity(Intent(this@MainActivity, BookmarksActivity::class.java))
                     "Saved logins" -> startActivity(Intent(this@MainActivity, LoginsActivity::class.java))
                     "Backup now" -> lifecycleScope.launch { backupNow() }
                     "Settings" -> startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
@@ -569,12 +734,36 @@ class MainActivity : AppCompatActivity() {
     /** Unlocks background sync for this session if a backup PIN exists. */
     private fun maybeAskPin() {
         if (!Prefs.isPinSet(this) || BackupPinHolder.pin != null) return
-        val input = EditText(this).apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD }
-        AlertDialog.Builder(this)
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = dp(24)
+            setPadding(pad, pad, pad, pad)
+        }
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            hint = "Backup PIN"
+        }
+        val showPin = CheckBox(this).apply {
+            text = "Show PIN"
+            setOnCheckedChangeListener { _, checked ->
+                input.inputType = if (checked) {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                } else {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                }
+                input.setSelection(input.text.length)
+            }
+        }
+        container.addView(input)
+        container.addView(showPin)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Unlock backup")
             .setMessage("Enter your backup PIN to enable auto backup this session.")
-            .setView(input)
-            .setPositiveButton("Unlock") { _, _ -> BackupPinHolder.pin = input.text.toString() }
+            .setView(container)
+            .setPositiveButton("Unlock") { _, _ ->
+                val pin = input.text.toString()
+                if (pin.isNotEmpty()) BackupPinHolder.pin = pin
+            }
             .setNegativeButton("Later", null)
             .show()
     }

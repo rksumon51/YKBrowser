@@ -35,6 +35,12 @@ interface BookmarkDao {
     @Query("SELECT * FROM bookmarks ORDER BY createdAt DESC")
     suspend fun getAll(): List<Bookmark>
 
+    @Query("SELECT * FROM bookmarks WHERE url = :url LIMIT 1")
+    suspend fun findByUrl(url: String): Bookmark?
+
+    @Query("DELETE FROM bookmarks WHERE url = :url")
+    suspend fun deleteByUrl(url: String)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(bookmark: Bookmark)
 

@@ -1,9 +1,12 @@
 package com.yk.browser.ui
 
-import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
+import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.yk.browser.R
 import com.yk.browser.auth.AuthManager
@@ -31,9 +35,13 @@ class SettingsActivity : AppCompatActivity() {
     private val backupManager by lazy { BackupManager(this) }
 
     private lateinit var tvAccount: TextView
+    private lateinit var tvVersion: TextView
+    private lateinit var tvFirebaseNotice: LinearLayout
     private lateinit var btnSignIn: com.google.android.material.button.MaterialButton
     private lateinit var btnSignOut: com.google.android.material.button.MaterialButton
     private lateinit var btnSetPin: com.google.android.material.button.MaterialButton
+    private lateinit var btnRestoreCloud: com.google.android.material.button.MaterialButton
+    private lateinit var btnRestoreLocal: com.google.android.material.button.MaterialButton
     private lateinit var switchCloud: SwitchMaterial
     private lateinit var switchLocal: SwitchMaterial
 
@@ -94,16 +102,33 @@ class SettingsActivity : AppCompatActivity() {
             .setNavigationOnClickListener { finish() }
 
         tvAccount = findViewById(R.id.tvAccount)
+        tvVersion = findViewById(R.id.tvVersion)
+        tvFirebaseNotice = findViewById(R.id.tvFirebaseNotice)
         btnSignIn = findViewById(R.id.btnSignIn)
         btnSignOut = findViewById(R.id.btnSignOut)
         btnSetPin = findViewById(R.id.btnSetPin)
+        btnRestoreCloud = findViewById(R.id.btnRestoreCloud)
+        btnRestoreLocal = findViewById(R.id.btnRestoreLocal)
         switchCloud = findViewById(R.id.switchCloud)
         switchLocal = findViewById(R.id.switchLocal)
         val btnBackupNow: com.google.android.material.button.MaterialButton = findViewById(R.id.btnBackupNow)
-        val btnRestoreCloud: com.google.android.material.button.MaterialButton = findViewById(R.id.btnRestoreCloud)
-        val btnRestoreLocal: com.google.android.material.button.MaterialButton = findViewById(R.id.btnRestoreLocal)
         val btnExport: com.google.android.material.button.MaterialButton = findViewById(R.id.btnExport)
         val btnImport: com.google.android.material.button.MaterialButton = findViewById(R.id.btnImport)
+
+        // App version is read from the package — never hardcoded.
+        val versionName = try {
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                packageManager.getPackageInfo(
+                    packageName, PackageManager.PackageInfoFlags.of(0)
+                ).versionName
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionName
+            }
+        } catch (e: Exception) {
+            null
+        }
+        tvVersion.text = if (versionName != null) "YKBrowser v$versionName" else "YKBrowser"
 
         btnSignIn.setOnClickListener {
             if (!AuthManager.isFirebaseConfigured(this)) {
@@ -171,9 +196,13 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshAccount() {
         val email = AuthManager.currentEmail()
+        val configured = AuthManager.isFirebaseConfigured(this)
         tvAccount.text = if (email != null) "Signed in as $email" else "Not signed in"
-        btnSignIn.isEnabled = email == null
+        tvFirebaseNotice.visibility = if (configured) View.GONE else View.VISIBLE
+        btnSignIn.isEnabled = email == null && configured
         btnSignOut.isEnabled = email != null
+        switchCloud.isEnabled = configured
+        btnRestoreCloud.isEnabled = configured
         btnSetPin.text = if (Prefs.isPinSet(this)) "Change backup PIN" else "Set backup PIN"
     }
 
@@ -185,30 +214,71 @@ class SettingsActivity : AppCompatActivity() {
             askNewPin()
             return
         }
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (24 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             hint = "Backup PIN"
         }
-        AlertDialog.Builder(this)
+        val showPin = CheckBox(this).apply {
+            text = "Show PIN"
+            setOnCheckedChangeListener { _, checked ->
+                input.inputType = if (checked) {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                } else {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                }
+                input.setSelection(input.text.length)
+            }
+        }
+        container.addView(input)
+        container.addView(showPin)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Enter backup PIN")
-            .setView(input)
+            .setView(container)
             .setPositiveButton("OK") { _, _ ->
-                BackupPinHolder.pin = input.text.toString()
-                onPin(input.text.toString())
+                val pin = input.text.toString()
+                if (pin.isEmpty()) {
+                    toast("Enter your PIN")
+                    return@setPositiveButton
+                }
+                BackupPinHolder.pin = pin
+                onPin(pin)
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
     private fun askNewPin() {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (24 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             hint = "New PIN (min 4 chars)"
         }
-        AlertDialog.Builder(this)
+        val showPin = CheckBox(this).apply {
+            text = "Show PIN"
+            setOnCheckedChangeListener { _, checked ->
+                input.inputType = if (checked) {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                } else {
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                }
+                input.setSelection(input.text.length)
+            }
+        }
+        container.addView(input)
+        container.addView(showPin)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Set backup PIN")
             .setMessage("This PIN encrypts your vault. Without it nobody — not even the cloud — can read your backup.")
-            .setView(input)
+            .setView(container)
             .setPositiveButton("Save") { _, _ ->
                 val pin = input.text.toString()
                 if (pin.length < 4) {

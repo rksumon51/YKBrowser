@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- YKBrowser design tokens — DARK (primary experience) -->
+    <color name="browser_bg">#1F1F1F</color>
+    <color name="browser_surface">#282A2D</color>
+    <color name="browser_surface_container">#303134</color>
+    <color name="browser_surface_container_high">#3C4043</color>
+    <color name="browser_primary">#A8C7FA</color>
+    <color name="browser_on_primary">#062E6F</color>
+    <color name="browser_primary_container">#2E4A73</color>
+    <color name="browser_on_primary_container">#D3E3FD</color>
+    <color name="browser_secondary">#9AA0A6</color>
+    <color name="browser_text_primary">#E8EAED</color>
+    <color name="browser_text_secondary">#BDC1C6</color>
+    <color name="browser_divider">#45474A</color>
+    <color name="browser_error">#F28B82</color>
+    <color name="browser_success">#81C995</color>
+
+    <color name="ic_launcher_background">#000000</color>
+</resources>
